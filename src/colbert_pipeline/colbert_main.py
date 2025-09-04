@@ -9,6 +9,7 @@ For any questions or further information, please feel free to reach out via the 
 import json
 from ragatouille import RAGPretrainedModel
 import warnings
+import os
 warnings.filterwarnings("ignore")
 
 class ColBERT:
@@ -42,8 +43,17 @@ class ColBERT:
         """
         data = self.load_jsonl()
         docs = [item['request'] for item in data]
-        self.RAG.index(index_name=self.index_name, collection=docs, split_documents=False)
-
+        index_path = f"git/TableRAG/.ragatouille/colbert/indexes/{self.index_name}"
+        if os.path.exists(index_path) and os.listdir(index_path):
+            print(f"Index '{self.index_name}' already exists. Skipping embedding.")
+        else:
+            print(f"Creating new index '{self.index_name}'...")
+            self.RAG.index(
+            index_name=self.index_name,
+            collection=docs,
+            split_documents=False,
+            overwrite_index="force_silent_overwrite"
+            )
     def retrieve(self, query: str, top_k: int = 1, force_fast: bool = False, rerank: bool = False, rerank_top_k: int = 1):
         """
         Retrieve documents based on a query, with optional reranking.
